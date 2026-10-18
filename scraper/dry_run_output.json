@@ -1,0 +1,50 @@
+[
+  {
+    "business_name": "Live Client Dental",
+    "niche": "Local Service",
+    "city": "Unknown",
+    "email": null,
+    "phone": null,
+    "has_website": true,
+    "website_url": "https://example.com",
+    "target_type": "crappy_website",
+    "website_score": 15,
+    "website_screenshot_url": "/audits/example-com.png",
+    "audit_slug": "example-com",
+    "rating": 4.8,
+    "review_count": 45,
+    "top_competitor": "Category Leader",
+    "visual_and_ux_flaws": [
+      "Complete absence of commercial value proposition, brand identity, or visual hierarchy required to retain visitors.",
+      "Monolithic, center-aligned multilingual text block creates cognitive fatigue with zero scannable visual structure.",
+      "Total lack of lead capture infrastructure, relying exclusively on a raw, unstyled inline hyperlink with no strategic call-to-action.",
+      "Barren layout utilizing massive empty canvas space without responsive grid structure, trust signals, or media assets."
+    ],
+    "pain_points": [
+      "Monolithic, center-aligned text wall creates immediate friction, causing high-value cosmetic and restorative patients to bounce within 4 seconds on mobile devices.",
+      "Absence of structured intake captures; relying on a raw inline link bleeds an estimated 10-15 elective patient bookings per month to Category Leader.",
+      "Barren desktop layout with zero trust badges or visible review integration actively hides your 4.8-star reputation from prospective patients."
+    ],
+    "client_brief": {
+      "business_summary": "Live Client Dental is an established local dental clinic with an exceptional 4.8-star track record over 45 reviews, currently bottlenecked by an unformatted digital presence.",
+      "working_model": "Elective cosmetic dentistry, aligners, and implant cases valued between $1,500 and $5,000+ per treatment plan.",
+      "pitch_angle": "Replace an outdated, friction-heavy page with a structured intake system that turns local search traffic into confirmed consultations.",
+      "recommended_services": [
+        "Full website build in Wix Studio",
+        "Multi-step intake forms & lead-capture systems",
+        "Complete site copywriting"
+      ]
+    },
+    "email_subject": "live client dental \u2014 website breakdown",
+    "email_draft_plain": "You've earned a solid 4.8-star reputation across 45 reviews, but your website is currently working against you.\n\nRight now, prospective patients land on an unformatted block of center-aligned text with no structured booking system\u2014just a raw hyperlink. High-margin implant and cosmetic patients bounce within seconds and book with Category Leader instead.\n\nI put together a brief visual audit showing what is causing this drop-off and how a streamlined booking flow fixes it:\nhttps://bysaad.com/audit/example-com\n\nTake a look and let me know if you want to review the live prototype.\n\nSaad Bin Faisal\nBYSAAD \u00b7 bysaad.com",
+    "follow_up_draft": "Following up on the conversion tear-down I sent over: https://bysaad.com/audit/example-com. Did you have a chance to see how much patient intake you're currently losing at that raw hyperlink?",
+    "call_battlecard": {
+      "hook": "Saw your 4.8-star rating on Google, but noticed your mobile site forces patients to hunt down a raw link just to schedule an appointment.",
+      "problem": "High-value cosmetic and implant cases bounce within four seconds due to an unformatted layout, sending local searchers straight to Category Leader.",
+      "soft_close": "I put together a short visual tear-down with a functional prototype preview\u2014can I send the direct link to your inbox?"
+    },
+    "email_draft_html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>live client dental \u2014 website breakdown</title>\n</head>\n<body style=\"margin: 0; padding: 32px 16px; background-color: #0C0C0C; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #F2F2F2; -webkit-font-smoothing: antialiased;\">\n  <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width: 600px; margin: 0 auto; background-color: #111111; border: 1px solid #1A1A1A; border-collapse: separate; border-radius: 0px;\">\n    <!-- Top Brand Header Bar -->\n    <tr>\n      <td style=\"padding: 28px 32px 20px 32px; border-bottom: 1.5px solid #C8F135;\">\n        <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\n          <tr>\n            <td align=\"left\" style=\"vertical-align: middle;\">\n              <span style=\"font-family: 'Oswald', Arial, sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; font-size: 18px; color: #F2F2F2; display: inline-block;\">\n                BYSAAD\n              </span>\n              <span style=\"font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: #3A3A3A; margin-left: 10px; font-family: 'DM Sans', Arial, sans-serif;\">\n                CONFIDENTIAL AUDIT\n              </span>\n            </td>\n            <td align=\"right\" style=\"vertical-align: middle;\">\n              <span style=\"font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: #888888; font-family: 'DM Sans', Arial, sans-serif;\">\n                // OUTBOUND ENGINE\n              </span>\n            </td>\n          </tr>\n        </table>\n      </td>\n    </tr>\n\n    <!-- Body Copy -->\n    <tr>\n      <td style=\"padding: 32px 32px 24px 32px;\">\n        <p style=\"margin: 0 0 16px 0; font-size: 15px; line-height: 1.75; color: #F2F2F2; font-family: 'DM Sans', Arial, sans-serif;\">You've earned a solid 4.8-star reputation across 45 reviews, but your website is currently working against you.</p><p style=\"margin: 0 0 16px 0; font-size: 15px; line-height: 1.75; color: #F2F2F2; font-family: 'DM Sans', Arial, sans-serif;\">Right now, prospective patients land on an unformatted block of center-aligned text with no structured booking system\u2014just a raw hyperlink. High-margin implant and cosmetic patients bounce within seconds and book with Category Leader instead.</p><p style=\"margin: 0 0 16px 0; font-size: 15px; line-height: 1.75; color: #F2F2F2; font-family: 'DM Sans', Arial, sans-serif;\">Take a look and let me know if you want to review the live prototype.</p>\n\n        <!-- Single #C8F135 Primary CTA Block -->\n        <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin: 32px 0 24px 0;\">\n          <tr>\n            <td align=\"left\">\n              <a href=\"https://bysaad.com/audit/example-com\" target=\"_blank\" style=\"display: inline-block; background-color: #C8F135; color: #0C0C0C; font-family: 'Oswald', Arial, sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-size: 13px; padding: 14px 28px; text-decoration: none; border-radius: 0px;\">\n                VIEW LIVE AUDIT &rarr;\n              </a>\n            </td>\n          </tr>\n          <tr>\n            <td align=\"left\" style=\"padding-top: 8px;\">\n              <span style=\"font-size: 11px; color: #888888; font-family: 'DM Sans', Arial, sans-serif;\">\n                Interactive prototype & teardown: <span style=\"color: #F2F2F2;\">https://bysaad.com/audit/example-com</span>\n              </span>\n            </td>\n          </tr>\n        </table>\n      </td>\n    </tr>\n\n    <!-- Signature Block -->\n    <tr>\n      <td style=\"padding: 24px 32px; border-top: 1px solid #1A1A1A; background-color: #0C0C0C;\">\n        <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\n          <tr>\n            <td align=\"left\" style=\"vertical-align: middle;\">\n              <p style=\"margin: 0; font-family: 'DM Sans', Arial, sans-serif; font-size: 14px; font-weight: 700; color: #F2F2F2;\">\n                Saad Bin Faisal\n              </p>\n              <p style=\"margin: 2px 0 0 0; font-size: 11px; color: #888888; font-family: 'DM Sans', Arial, sans-serif;\">\n                BYSAAD &bull; <a href=\"https://bysaad.com\" style=\"color: #888888; text-decoration: none;\">bysaad.com</a>\n              </p>\n            </td>\n            <td align=\"right\" style=\"vertical-align: middle;\">\n              <span style=\"font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: #3A3A3A; font-family: 'DM Sans', Arial, sans-serif;\">\n                LAHORE &bull; GLOBAL CLIENTELE\n              </span>\n            </td>\n          </tr>\n        </table>\n      </td>\n    </tr>\n  </table>\n</body>\n</html>",
+    "status": "pending_approval",
+    "director_angle_id": "strat-baseline-crappy-web"
+  }
+]

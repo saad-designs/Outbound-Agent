@@ -1,0 +1,7 @@
+playwright
+google-genai
+supabase
+python-dotenv
+youtube-transcript-api
+beautifulsoup4
+pillow
