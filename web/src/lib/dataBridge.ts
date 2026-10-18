@@ -3,6 +3,7 @@ import path from "path";
 import { Lead, DirectorPlaybookStrategy, Invoice } from "@/types/crm";
 import { MOCK_LEADS, MOCK_STRATEGIES, MOCK_INVOICES } from "@/data/mockData";
 import { getSupabase } from "./supabase";
+import { getPostgresPool } from "./postgres";
 
 const LOCAL_STATE_FILE = path.join(process.cwd(), ".local_crm_state.json");
 const SCRAPER_OUTPUT_FILE = path.join(process.cwd(), "..", "scraper", "dry_run_output.json");
@@ -34,15 +35,34 @@ function writeJSONSafe(filePath: string, data: unknown) {
 }
 
 export async function getCRMData(): Promise<CRMState> {
+  const pool = getPostgresPool();
   const supabase = getSupabase();
+
   let state: CRMState = {
     leads: [],
     playbooks: [],
     invoices: [],
   };
 
-  // 1. Try Supabase first
-  if (supabase) {
+  // 1. Try Direct PostgreSQL Pool First
+  if (pool) {
+    try {
+      const [leadsRes, playbooksRes, invoicesRes] = await Promise.all([
+        pool.query("SELECT * FROM leads ORDER BY created_at DESC;"),
+        pool.query("SELECT * FROM director_playbook ORDER BY conversion_score DESC;"),
+        pool.query("SELECT * FROM invoices ORDER BY created_at DESC;"),
+      ]);
+
+      if (leadsRes.rows) state.leads = leadsRes.rows as Lead[];
+      if (playbooksRes.rows) state.playbooks = playbooksRes.rows as DirectorPlaybookStrategy[];
+      if (invoicesRes.rows) state.invoices = invoicesRes.rows as Invoice[];
+    } catch (pgErr) {
+      console.warn("[dataBridge] PostgreSQL pool query error, falling back:", pgErr);
+    }
+  }
+
+  // 2. Try Supabase REST Client if PostgreSQL didn't populate
+  if (state.leads.length === 0 && state.playbooks.length === 0 && supabase) {
     try {
       const [leadsRes, playbooksRes, invoicesRes] = await Promise.all([
         supabase.from("leads").select("*").order("created_at", { ascending: false }),
@@ -50,35 +70,29 @@ export async function getCRMData(): Promise<CRMState> {
         supabase.from("invoices").select("*").order("created_at", { ascending: false }),
       ]);
 
-      if (leadsRes.data && leadsRes.data.length > 0) {
-        state.leads = leadsRes.data as Lead[];
-      }
-      if (playbooksRes.data && playbooksRes.data.length > 0) {
-        state.playbooks = playbooksRes.data as DirectorPlaybookStrategy[];
-      }
-      if (invoicesRes.data && invoicesRes.data.length > 0) {
-        state.invoices = invoicesRes.data as Invoice[];
-      }
+      if (leadsRes.data && leadsRes.data.length > 0) state.leads = leadsRes.data as Lead[];
+      if (playbooksRes.data && playbooksRes.data.length > 0) state.playbooks = playbooksRes.data as DirectorPlaybookStrategy[];
+      if (invoicesRes.data && invoicesRes.data.length > 0) state.invoices = invoicesRes.data as Invoice[];
     } catch (err) {
-      console.warn("[dataBridge] Supabase query failed, falling back to local files:", err);
+      console.warn("[dataBridge] Supabase REST query failed:", err);
     }
   }
 
-  // 2. Fall back to local state file or mock data if empty
+  // 3. Fall back to local state file or mock data if still empty
   if (state.leads.length === 0) {
     const localState = readJSONSafe<CRMState>(LOCAL_STATE_FILE);
     if (localState && Array.isArray(localState.leads) && localState.leads.length > 0) {
-      state = localState;
+      state.leads = localState.leads;
+      if (state.playbooks.length === 0) state.playbooks = localState.playbooks || [...MOCK_STRATEGIES];
+      if (state.invoices.length === 0) state.invoices = localState.invoices || [...MOCK_INVOICES];
     } else {
-      state = {
-        leads: [...MOCK_LEADS],
-        playbooks: [...MOCK_STRATEGIES],
-        invoices: [...MOCK_INVOICES],
-      };
+      state.leads = [...MOCK_LEADS];
+      if (state.playbooks.length === 0) state.playbooks = [...MOCK_STRATEGIES];
+      if (state.invoices.length === 0) state.invoices = [...MOCK_INVOICES];
     }
   }
 
-  // 3. Automatically merge freshly audited leads from /scraper/dry_run_output.json
+  // 4. Automatically merge freshly audited leads from /scraper/dry_run_output.json
   const dryRunLeads = readJSONSafe<Partial<Lead>[]>(SCRAPER_OUTPUT_FILE);
   if (dryRunLeads && Array.isArray(dryRunLeads)) {
     let hasNewMerge = false;
@@ -90,14 +104,12 @@ export async function getCRMData(): Promise<CRMState> {
       );
 
       if (existingIndex >= 0) {
-        // Update existing lead with freshly parsed fields
         state.leads[existingIndex] = {
           ...state.leads[existingIndex],
           ...dl,
           id: state.leads[existingIndex].id,
         } as Lead;
       } else {
-        // Prepend fresh lead to the top of the queue
         const newLead: Lead = {
           id: dl.id || `lead-scraped-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
           business_name: dl.business_name || "New Audited Prospect",
@@ -145,7 +157,6 @@ export async function getCRMData(): Promise<CRMState> {
     }
   }
 
-  // Ensure local state cache is kept fresh
   writeJSONSafe(LOCAL_STATE_FILE, state);
   return state;
 }
@@ -161,6 +172,7 @@ export async function getLeadBySlug(slug: string): Promise<Lead | null> {
 }
 
 export async function updateLead(leadId: string, updates: Partial<Lead>): Promise<Lead | null> {
+  const pool = getPostgresPool();
   const supabase = getSupabase();
   const state = await getCRMData();
 
@@ -172,7 +184,20 @@ export async function updateLead(leadId: string, updates: Partial<Lead>): Promis
 
   await saveCRMData(state);
 
-  if (supabase) {
+  // PostgreSQL Direct Update
+  if (pool) {
+    try {
+      const keys = Object.keys(updates);
+      if (keys.length > 0) {
+        const setClauses = keys.map((k, i) => `"${k}" = $${i + 1}`).join(", ");
+        const values = keys.map((k) => (updates as any)[k]);
+        values.push(leadId);
+        await pool.query(`UPDATE leads SET ${setClauses} WHERE id = $${values.length}`, values);
+      }
+    } catch (pgErr) {
+      console.warn("[dataBridge] PostgreSQL updateLead error:", pgErr);
+    }
+  } else if (supabase) {
     try {
       await supabase.from("leads").update(updates).eq("id", leadId);
     } catch (err) {
@@ -187,6 +212,7 @@ export async function updatePlaybook(
   playbookId: string,
   updates: Partial<DirectorPlaybookStrategy>
 ): Promise<DirectorPlaybookStrategy | null> {
+  const pool = getPostgresPool();
   const supabase = getSupabase();
   const state = await getCRMData();
 
@@ -198,7 +224,20 @@ export async function updatePlaybook(
 
   await saveCRMData(state);
 
-  if (supabase) {
+  // PostgreSQL Direct Update
+  if (pool) {
+    try {
+      const keys = Object.keys(updates);
+      if (keys.length > 0) {
+        const setClauses = keys.map((k, i) => `"${k}" = $${i + 1}`).join(", ");
+        const values = keys.map((k) => (updates as any)[k]);
+        values.push(playbookId);
+        await pool.query(`UPDATE director_playbook SET ${setClauses} WHERE id = $${values.length}`, values);
+      }
+    } catch (pgErr) {
+      console.warn("[dataBridge] PostgreSQL updatePlaybook error:", pgErr);
+    }
+  } else if (supabase) {
     try {
       await supabase.from("director_playbook").update(updates).eq("id", playbookId);
     } catch (err) {
@@ -210,6 +249,7 @@ export async function updatePlaybook(
 }
 
 export async function addInvoice(invoiceInput: Partial<Invoice>): Promise<Invoice> {
+  const pool = getPostgresPool();
   const supabase = getSupabase();
   const state = await getCRMData();
 
@@ -239,7 +279,26 @@ export async function addInvoice(invoiceInput: Partial<Invoice>): Promise<Invoic
   state.invoices.unshift(newInvoice);
   await saveCRMData(state);
 
-  if (supabase) {
+  // PostgreSQL Direct Insert
+  if (pool) {
+    try {
+      await pool.query(
+        `INSERT INTO invoices (invoice_number, issue_date, due_date, line_items, total_amount, deposit_amount, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          newInvoice.invoice_number,
+          newInvoice.issue_date,
+          newInvoice.due_date,
+          JSON.stringify(newInvoice.line_items),
+          newInvoice.total_amount,
+          newInvoice.deposit_amount,
+          newInvoice.status,
+        ]
+      );
+    } catch (pgErr) {
+      console.warn("[dataBridge] PostgreSQL addInvoice error:", pgErr);
+    }
+  } else if (supabase) {
     try {
       await supabase.from("invoices").insert(newInvoice);
     } catch (err) {
