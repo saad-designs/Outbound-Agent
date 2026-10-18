@@ -55,6 +55,27 @@ export async function POST(req: NextRequest) {
         if (resendResponse.data?.id) {
           messageId = resendResponse.data.id;
           simulated = false;
+          console.log(`[email/send] Live email dispatched via Resend! ID: ${messageId} -> ${toEmail}`);
+        } else if (resendResponse.error) {
+          console.warn("[email/send] Resend API notice:", resendResponse.error.message);
+          // If custom domain is not yet verified in Resend, retry via onboarding@resend.dev sandbox
+          if (
+            fromAddress !== "Saad Bin Faisal <onboarding@resend.dev>" &&
+            (resendResponse.error.message?.toLowerCase().includes("domain") ||
+              resendResponse.error.message?.toLowerCase().includes("verify"))
+          ) {
+            try {
+              sendPayload.from = "Saad Bin Faisal <onboarding@resend.dev>";
+              const retry = await resend.emails.send(sendPayload);
+              if (retry.data?.id) {
+                messageId = retry.data.id;
+                simulated = false;
+                console.log(`[email/send] Live email dispatched via Resend sandbox! ID: ${messageId} -> ${toEmail}`);
+              }
+            } catch (retryErr: any) {
+              console.warn("[email/send] Sandbox retry notice:", retryErr.message);
+            }
+          }
         }
       } catch (sendErr: any) {
         console.warn("[email/send] Resend error, falling back to simulated dispatch:", sendErr.message);
