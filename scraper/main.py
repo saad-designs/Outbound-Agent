@@ -92,6 +92,21 @@ async def run_single_audit(url: str, name: str, gemini_client, supabase_client, 
     outreach = generate_outreach_package(lead_data, angle, gemini_client)
     full_lead = {**lead_data, **outreach, "status": "pending_approval", "director_angle_id": angle.get("id")}
 
+    if not dry_run:
+        try:
+            from db import insert_or_update_lead
+            if insert_or_update_lead(full_lead):
+                print(f"[+] Successfully saved lead to PostgreSQL: {full_lead['business_name']}")
+        except Exception as pg_err:
+            print(f"[!] PostgreSQL insert notice: {pg_err}")
+
+        if supabase_client:
+            try:
+                supabase_client.table("leads").insert(full_lead).execute()
+                print(f"[+] Successfully inserted into Supabase `leads`: {full_lead['business_name']}")
+            except Exception as db_err:
+                print(f"[!] Supabase insert notice: {db_err}")
+
     output_path = Path(__file__).resolve().parent / "dry_run_output.json"
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump([full_lead], f, indent=2)
@@ -152,13 +167,21 @@ async def run_scrape_pipeline(niche: str, city: str, limit: int, gemini_client, 
             "status": "pending_approval"
         }
 
-        # Save to Supabase if live and not dry-run
-        if supabase_client and not dry_run:
+        # Save to PostgreSQL and Supabase if live and not dry-run
+        if not dry_run:
             try:
-                res = supabase_client.table("leads").insert(full_lead).execute()
-                print(f"    [+] Successfully inserted into Supabase `leads`: {full_lead['business_name']}")
-            except Exception as db_err:
-                print(f"    [!] Supabase insert error: {db_err}")
+                from db import insert_or_update_lead
+                if insert_or_update_lead(full_lead):
+                    print(f"    [+] Successfully saved lead to PostgreSQL: {full_lead['business_name']}")
+            except Exception as pg_err:
+                print(f"    [!] PostgreSQL insert notice: {pg_err}")
+
+            if supabase_client:
+                try:
+                    res = supabase_client.table("leads").insert(full_lead).execute()
+                    print(f"    [+] Successfully inserted into Supabase `leads`: {full_lead['business_name']}")
+                except Exception as db_err:
+                    print(f"    [!] Supabase insert error: {db_err}")
 
         processed_leads.append(full_lead)
 

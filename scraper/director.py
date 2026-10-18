@@ -159,6 +159,15 @@ Extract a forensic outbound cold outreach strategy matching this exact JSON sche
                 record["id"] = res.data[0].get("id")
         except Exception as db_err:
             print(f"[!] Supabase insert warning: {db_err}")
+    else:
+        try:
+            from db import insert_playbook_strategy_to_db
+            new_id = insert_playbook_strategy_to_db(record)
+            if new_id:
+                record["id"] = new_id
+                print(f"[+] Saved strategy to PostgreSQL `director_playbook`: {record['strategy_name']}")
+        except Exception as pg_err:
+            print(f"[!] PostgreSQL playbook insert warning: {pg_err}")
 
     return {**strategy_data, **record}
 
@@ -171,7 +180,7 @@ def select_best_director_angle(lead_data: dict, supabase_client=None) -> dict:
     """
     target_type = lead_data.get("target_type", "no_website")
 
-    # Try querying Supabase if client available
+    # 1. Try querying Supabase REST if client available
     if supabase_client:
         try:
             res = (
@@ -183,7 +192,6 @@ def select_best_director_angle(lead_data: dict, supabase_client=None) -> dict:
                 .execute()
             )
             if res.data and len(res.data) > 0:
-                # Return top strategy
                 top = res.data[0]
                 return {
                     "id": top.get("id"),
@@ -194,8 +202,26 @@ def select_best_director_angle(lead_data: dict, supabase_client=None) -> dict:
                     "cta_mechanic": "Offer direct audit link with zero friction",
                     "follow_up_timing": "72-hour 2-sentence bump"
                 }
-        except Exception as e:
+        except Exception:
             pass
+
+    # 2. Try querying direct PostgreSQL database
+    try:
+        from db import get_active_playbooks_from_db
+        active_playbooks = get_active_playbooks_from_db()
+        if active_playbooks and len(active_playbooks) > 0:
+            top = active_playbooks[0]
+            return {
+                "id": str(top.get("id")),
+                "strategy_name": top.get("strategy_name"),
+                "extracted_rules": top.get("extracted_rules", []),
+                "hook_formula": "Lead with verified review volume and contrast with digital gap",
+                "pain_point_framing": "Calculate high-ticket leads lost to named competitor",
+                "cta_mechanic": "Offer direct audit link with zero friction",
+                "follow_up_timing": "72-hour 2-sentence bump"
+            }
+    except Exception:
+        pass
 
     # Built-in High-Converting BYSAAD Baseline Playbooks
     if target_type == "no_website":

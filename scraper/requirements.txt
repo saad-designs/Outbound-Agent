@@ -5,3 +5,4 @@ python-dotenv
 youtube-transcript-api
 beautifulsoup4
 pillow
+psycopg2-binary
